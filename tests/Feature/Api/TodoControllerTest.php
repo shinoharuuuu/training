@@ -5,7 +5,6 @@ namespace Tests\Feature\Api;
 use App\Models\Todo;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
-use Illuminate\Foundation\Testing\WithFaker;
 
 class TodoControllerTest extends TestCase
 {
@@ -47,56 +46,51 @@ class TodoControllerTest extends TestCase
     public function Todoの更新()
     {   
         //$paramsで代入したデータで更新できるかテスト
+
+        $id = Todo::factory()->createOne()->id;
+
         $params = [
             'title' => 'テスト:タイトル2',
             'content' => 'テスト:内容2'
         ];
 
-        $this->assertDatabaseMissing('todos', $params);
-
-        $res = $this->putJson(route('api.todo.index'), $params);
+        $res = $this->putJson(route('api.todo.update', ['id' => $id]), $params);
         
-        $res->assertStatus(500);
+        $res->assertOk();
 
+        $editedData = Todo::find($id);
+
+        $this->assertEquals($params['title'], $editedData->title);
+        $this->assertEquals($params['content'], $editedData->content);
     }
 
     /**
      * @test
      */
     public function Todoの詳細取得()
-    {   
-        //$paramsで代入したデータで取得できるかテスト
-        $params = [
-            'title' => 'テスト:タイトル',
-            'content' => 'テスト:内容'
-        ];
+    {   //レスポンスが200のステータスコードを持っているか
+        
+        $id = Todo::factory()->createOne()->id;
 
-        $res = $this->getJson(route('api.todo.edit'), $params);
+        $res = $this->getJson(route('api.todo.show', ['id' => $id]) );
 
 
-        $res->assertStatus(500);
+        $res->assertOk();
     }
 
     /**
      * @test
      */
     public function Todoの削除()
-    {   
-        //$paramsで代入したデータをDBに格納後、削除処理をしたらDBから消えているか。物理処理なのでDBから消えているかテスト
+    {   //データが削除処理をしたら消えていることが確認できるか
 
-        $params =[
-            'title' => 'テスト:タイトル削除',
-            'content' => 'テスト:内容削除'
-        ];
+        $id = Todo::factory()->createOne()->id;
 
-        $res = $this->postJson(route('api.todo.create'), $params);
+        $res = $this->deleteJson(route('api.todo.destroy', ['id' => $id]));
 
-        $this->assertDatabaseHas('todos', $params);
+        $res->assertOk();
 
-        $res = $this->deleteJson(route('api.todo.destroy'), $params);
-
-        //上記で削除処理をしたので、DBに$paramsデータはないはず…
-        $this->assertDatabaseMissing('todos', $params);
+        $this->assertNull(Todo::find($id));
         
     }
 

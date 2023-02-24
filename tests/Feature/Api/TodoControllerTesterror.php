@@ -5,7 +5,6 @@ namespace Tests\Feature\Api;
 use App\Models\Todo;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
-use Illuminate\Foundation\Testing\WithFaker;
 
 
 class TodoControllerTesterror extends TestCase
@@ -21,10 +20,10 @@ class TodoControllerTesterror extends TestCase
     /**
      * @test
      */
-    public function Todoの新規作成()
+    public function Todoの新規作成失敗()
     {   //タイトル未入力、文字列以外を登録した場合にエラーが出る
         $params = [
-            'content' => [],
+            'content' => null,
         ];
 
         $res = $this->postJson(route('api.todo.create'), $params);
@@ -44,62 +43,52 @@ class TodoControllerTesterror extends TestCase
     /**
      * @test
      */
-    public function Todoの更新()
-    {   
-        //$paramsで代入したデータで更新できるかテスト
+    public function Todoの更新失敗()
+    {   //$paramsで代入したデータで更新できるかテスト
+
+        $id = Todo::factory()->createOne()->id;
+
         $params = [
-            'title' => 'テスト:タイトル2',
-            'content' => 'テスト:内容2'
+            'content' => null,
         ];
 
-        $this->assertDatabaseMissing('todos', $params);
-
-        $res = $this->putJson(route('api.todo.index'), $params);
-
-        $this->assertDatabaseMissing('todos', $params);
+        $res = $this->putJson(route('api.todo.update', ['id' => $id]), $params);
         
-        $res->assertOk();
+        $res->assertStatus(404);
+
+        $editedData = Todo::find($id);
+        
+        $this->assertEquals($params['title'], $editedData->title);
+        $this->assertEquals($params['content'], $editedData->content);
 
     }
 
     /**
      * @test
      */
-    public function Todoの詳細取得()
-    {   
-        //$paramsで代入したデータ取得のHTTPステータスコードは新規作成と異なるはず
-        $params = [
-            'title' => 'テスト:タイトル',
-            'content' => 'テスト:内容'
-        ];
+    public function Todoの詳細取得失敗()
+    {   //レスポンスが200以外のステータスコードを持っているか
 
-        $res = $this->getJson(route('api.todo.edit'), $params);
+        $id = Todo::factory()->createOne()->id;
 
+        $res = $this->getJson(route('api.todo.show', ['id' => $id]) );
 
-        $res->assertOk();
+        $res->assertStatus(404);
     }
 
     /**
      * @test
      */
-    public function Todoの削除()
-    {   
-        //$paramsで代入したデータをDBに格納後、削除処理をしたら論理削除されているか
+    public function Todoの削除失敗()
+    {   //削除したデータがfindで取得できないはず
 
-        $params =[
-            'title' => 'テスト:タイトル削除',
-            'content' => 'テスト:内容削除'
-        ];
+        $id = Todo::factory()->createOne()->id;
 
-        $res = $this->postJson(route('api.todo.create'), $params);
+        $res = $this->deleteJson(route('api.todo.destroy', ['id' => $id]));
 
-        $this->assertDatabaseHas('todos', $params);
+        $res->assertStatus(404);
 
-        $res = $this->deleteJson(route('api.todo.destroy'), $params);
-
-        $this->assertSoftDeleted(table:'todos' , data: ['title' => 'テスト:タイトル削除']);
-        $this->assertSoftDeleted(table:'todos' , data: ['content' => 'テスト:内容削除']);
-        
+        $editedData = Todo::find($id);
     }
 
     

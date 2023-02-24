@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Todo;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -10,6 +11,13 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 class TodoFactory extends Factory
 {
     /**
+     * The name of the factory's corresponding model.
+     *
+     * @var string
+     */
+    protected $model = Todo::class;
+
+    /**
      * Define the model's default state.
      *
      * @return array<string, mixed>
@@ -17,7 +25,8 @@ class TodoFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'title' => $this->faker->title(),
+            'content'=> $this->faker->realText()
         ];
     }
 }
