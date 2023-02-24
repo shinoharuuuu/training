@@ -56,10 +56,10 @@ class TodoControllerTesterror extends TestCase
         
         $res->assertStatus(404);
 
-        $editedData = Todo::find($id);
+        $todo = Todo::find($id);
         
-        $this->assertEquals($params['title'], $editedData->title);
-        $this->assertEquals($params['content'], $editedData->content);
+        $this->assertEquals($params['title'], $todo->title);
+        $this->assertEquals($params['content'], $todo->content);
 
     }
 
